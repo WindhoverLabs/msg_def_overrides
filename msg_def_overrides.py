@@ -96,10 +96,10 @@ def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite
     """
     Adds a new type to the symbols table with a random name.
     This function ensures that the new type does not exist in the database.
+    :param encoding: The foreign key to the encoding for this symbol, may be None.
     :param elf_name:
     :param byte_size:
     :param db_handle:
-    :param:encoding: The foreign key, may be None.
     :return: Returns the new symbol record that was added to the database. If the elf record with name of elf_name
     does not exist, then None is returned.
     """
