@@ -1,0 +1,37 @@
+name: Run juicer tests
+on:
+  push:
+    branches:
+      - '*'
+  pull_request:
+    branches:
+      - develop
+
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true  # Clone submodules
+          fetch-depth: 0    # Ensure full repository history is fetched
+
+      # Set up Docker Buildx (optional, useful for multi-platform builds)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Build the Docker image
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false  # Do not push the image
+          tags: msg_def_overrides:latest  # Local tag for the built image
+      - name: Run Docker image and run unit tests
+        run: |
+          touch .env
+          make docker_build
+
