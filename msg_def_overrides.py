@@ -35,14 +35,20 @@ def symbol_exists(symbol_name: str, db_handle: sqlite_utils.Database):
     :return: True if symbol exists, False otherwise.
     """
     does_symbol_exists = True
-    symbol_record = list(db_handle['symbols'].rows_where('name=?', [symbol_name]))
+    symbol_record = list(
+        db_handle['symbols'].rows_where(
+            'name=?', [symbol_name]))
 
     if len(symbol_record) == 0:
         does_symbol_exists = False
 
     return does_symbol_exists
 
-def field_exists(symbol_name: str, field_name: str, db_handle: sqlite_utils.Database):
+
+def field_exists(
+        symbol_name: str,
+        field_name: str,
+        db_handle: sqlite_utils.Database):
     """
     Checks if the symbol record with name symbol_name exists in the database.
     :param symbol_name:
@@ -50,12 +56,17 @@ def field_exists(symbol_name: str, field_name: str, db_handle: sqlite_utils.Data
     :return: True if symbol exists, False otherwise.
     """
     does_field_exists = False
-    symbol_record = list(db_handle['symbols'].rows_where('name=?', [symbol_name]))
+    symbol_record = list(
+        db_handle['symbols'].rows_where(
+            'name=?', [symbol_name]))
     if len(symbol_record) == 0:
         does_field_exists = False
         return does_field_exists
 
-    field_record = list(db_handle['fields'].rows_where('symbol=? and name=?', [symbol_record[0]['id'], field_name]))
+    field_record = list(
+        db_handle['fields'].rows_where(
+            'symbol=? and name=?', [
+                symbol_record[0]['id'], field_name]))
 
     if len(field_record) == 0:
         does_field_exists = False
@@ -63,9 +74,11 @@ def field_exists(symbol_name: str, field_name: str, db_handle: sqlite_utils.Data
     return does_field_exists
 
 
-
-def add_type_to_database(type_name: str, elf_name: str, byte_size: int,
-                         db_handle: sqlite_utils.Database) -> Union[dict, None]:
+def add_type_to_database(type_name: str,
+                         elf_name: str,
+                         byte_size: int,
+                         db_handle: sqlite_utils.Database) -> Union[dict,
+                                                                    None]:
     """
     Adds a new type with the name of type_name size of byte_size and mapped to the elf with name of elf_name. It is
     assumed that the type does NOT exist in the database.
@@ -77,9 +90,11 @@ def add_type_to_database(type_name: str, elf_name: str, byte_size: int,
     the new symbol record that was written to the database.
     """
     new_type_record = {}
-    elf_key = list(db_handle['elfs'].rows_where('name=?', [os.path.realpath(elf_name)]))
+    elf_key = list(db_handle['elfs'].rows_where(
+        'name=?', [os.path.realpath(elf_name)]))
     if len(elf_key) < 1:
-        logging.error(f"The elf record with name of {elf_name} was not found on the database")
+        logging.error(
+            f"The elf record with name of {elf_name} was not found on the database")
         return None
     new_type_record['elf'] = elf_key[0]['id']
     new_type_record['name'] = type_name
@@ -92,7 +107,12 @@ def add_type_to_database(type_name: str, elf_name: str, byte_size: int,
     return new_type_record
 
 
-def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite_utils.Database, encoding: Union[int, None]) -> Union[dict, None]:
+def add_random_type_to_database(elf_name: str,
+                                byte_size: int,
+                                db_handle: sqlite_utils.Database,
+                                encoding: Union[int,
+                                                None]) -> Union[dict,
+                                                                None]:
     """
     Adds a new type to the symbols table with a random name.
     This function ensures that the new type does not exist in the database.
@@ -104,9 +124,11 @@ def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite
     does not exist, then None is returned.
     """
     new_type_record = {}
-    elf_key = list(db_handle['elfs'].rows_where('name=?', [os.path.realpath(elf_name)]))
+    elf_key = list(db_handle['elfs'].rows_where(
+        'name=?', [os.path.realpath(elf_name)]))
     if len(elf_key) < 1:
-        logging.error(f"The elf record with name of {elf_name} was not found on the database.")
+        logging.error(
+            f"The elf record with name of {elf_name} was not found on the database.")
         return None
 
     new_type_record['elf'] = elf_key[0]['id']
@@ -125,8 +147,10 @@ def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite
     return new_type_record
 
 
-def add_enumeration_to_data_base(symbol_name: str, enum_map: dict, db_handle: sqlite_utils.Database) -> Union[
-    dict, None]:
+def add_enumeration_to_data_base(symbol_name: str,
+                                 enum_map: dict,
+                                 db_handle: sqlite_utils.Database) -> Union[dict,
+                                                                            None]:
     """
     Adds new enumeration records to database.
     :param symbol_name: A foreign key to a symbol record in the symbols table.
@@ -137,26 +161,31 @@ def add_enumeration_to_data_base(symbol_name: str, enum_map: dict, db_handle: sq
     with name of symbol_name does not exist.
     """
     if symbol_exists(symbol_name, db_handle) is False:
-        logging.error(f'The symbol record with name of {symbol_name} does not exist.')
+        logging.error(
+            f'The symbol record with name of {symbol_name} does not exist.')
         return None
 
     enumeration_record = {}
 
-    enumeration_record['symbol'] = list(db_handle['symbols'].rows_where('name=?', [symbol_name]))[0]['id']
+    enumeration_record['symbol'] = list(
+        db_handle['symbols'].rows_where(
+            'name=?', [symbol_name]))[0]['id']
 
     last_row_id = None
 
     for name, value in enum_map.items():
         enumeration_record['name'] = name
         enumeration_record['value'] = value
-        last_row_id = db_handle['enumerations'].insert(enumeration_record).last_rowid
+        last_row_id = db_handle['enumerations'].insert(
+            enumeration_record).last_rowid
 
     enumeration_record['id'] = last_row_id
 
     return enumeration_record
 
 
-def get_field_record(symbol_name: str, field_name: str, db_handle: sqlite_utils.Database) -> Union[dict, None]:
+def get_field_record(symbol_name: str, field_name: str,
+                     db_handle: sqlite_utils.Database) -> Union[dict, None]:
     """
     Return a field record from the database that is part of symbol symbol_name and has the name of filed_name.
     :param db_handle:
@@ -169,14 +198,22 @@ def get_field_record(symbol_name: str, field_name: str, db_handle: sqlite_utils.
     if symbol_exists(symbol_name, db_handle) is False:
         return field_record
 
-    symbol_id = list(db_handle['symbols'].rows_where('name=?', [symbol_name]))[0]['id']
+    symbol_id = list(
+        db_handle['symbols'].rows_where(
+            'name=?',
+            [symbol_name]))[0]['id']
 
-    field_record = list(db_handle['fields'].rows_where('symbol=? and name=?', [__follow_symbol_to_target(db_handle, symbol_id), field_name]))
+    field_record = list(
+        db_handle['fields'].rows_where(
+            'symbol=? and name=?', [
+                __follow_symbol_to_target(
+                    db_handle, symbol_id), field_name]))
 
     if len(field_record) == 0:
         return None
 
     return field_record[0]
+
 
 def __follow_symbol_to_target(db_cursor, symbol_id: int):
     """
@@ -196,7 +233,10 @@ def __follow_symbol_to_target(db_cursor, symbol_id: int):
         return __follow_symbol_to_target(db_cursor, target_symbol_id)
 
 
-def get_field_type_record(symbol_name: str, field_name: str, db_handle: sqlite_utils.Database) -> Union[dict, None]:
+def get_field_type_record(symbol_name: str,
+                          field_name: str,
+                          db_handle: sqlite_utils.Database) -> Union[dict,
+                                                                     None]:
     """
     Fetch the type of the field field_name that is inside the struct with name of symbol_name. Note that the record
     returned is a record from the symbols table.
@@ -208,7 +248,8 @@ def get_field_type_record(symbol_name: str, field_name: str, db_handle: sqlite_u
     """
     symbol_record = None
     if symbol_exists(symbol_name, db_handle) is False:
-        logging.error(f'The symbol name with name {symbol_name} does not exist.')
+        logging.error(
+            f'The symbol name with name {symbol_name} does not exist.')
         return symbol_record
 
     # TODO: There is a string edge case on this.
@@ -216,16 +257,25 @@ def get_field_type_record(symbol_name: str, field_name: str, db_handle: sqlite_u
     #     logging.error(f'The field name with name {field_name} and parent {symbol_name} does not exist.')
     #     return symbol_record
 
-    field_symbol = list(db_handle['symbols'].rows_where('name=?', [symbol_name]))[0]['id']
+    field_symbol = list(
+        db_handle['symbols'].rows_where(
+            'name=?', [symbol_name]))[0]['id']
     target_symbol = __follow_symbol_to_target(db_handle, field_symbol)
-    field_record = list(db_handle['fields'].rows_where('symbol=? and name=?', (target_symbol, field_name)))[0]
+    field_record = list(db_handle['fields'].rows_where(
+        'symbol=? and name=?', (target_symbol, field_name)))[0]
 
-    symbol_record = list(db_handle['symbols'].rows_where('id=?', [field_record['type']]))[0]
+    symbol_record = list(
+        db_handle['symbols'].rows_where(
+            'id=?', [
+                field_record['type']]))[0]
 
     return symbol_record
 
 
-def process_enum_override(enum_override: dict, symbol_elf: str, db_handle: sqlite_utils.Database):
+def process_enum_override(
+        enum_override: dict,
+        symbol_elf: str,
+        db_handle: sqlite_utils.Database):
     """
     Process the enumeration override enum_override.
     :param enum_override: A dict with the configuration of this override.
@@ -233,78 +283,101 @@ def process_enum_override(enum_override: dict, symbol_elf: str, db_handle: sqlit
     :param db_handle:
     :return:
     """
-    type_record = get_field_type_record(enum_override['parent'], enum_override['member'], db_handle)
+    type_record = get_field_type_record(
+        enum_override['parent'],
+        enum_override['member'],
+        db_handle)
     if type_record:
         type_byte_size = type_record['byte_size']
 
-        target_symbol_id = __follow_symbol_to_target(db_handle, type_record['id'])
-        encoding = list(db_handle['symbols'].rows_where("id=?", [target_symbol_id]))[0]['encoding']
-        new_type_record = add_random_type_to_database(symbol_elf, type_byte_size, db_handle, encoding)
+        target_symbol_id = __follow_symbol_to_target(
+            db_handle, type_record['id'])
+        encoding = list(db_handle['symbols'].rows_where(
+            "id=?", [target_symbol_id]))[0]['encoding']
+        new_type_record = add_random_type_to_database(
+            symbol_elf, type_byte_size, db_handle, encoding)
         if new_type_record:
-            new_enum_record = add_enumeration_to_data_base(new_type_record['name'],
-                                                           enum_override['enumerations'],
-                                                           db_handle)
+            new_enum_record = add_enumeration_to_data_base(
+                new_type_record['name'], enum_override['enumerations'], db_handle)
             if new_enum_record:
                 new_field_record = get_field_record(enum_override['parent'],
                                                     enum_override['member'],
                                                     db_handle)
-                db_handle['fields'].delete_where('id=?', [new_field_record['id']])
+                db_handle['fields'].delete_where(
+                    'id=?', [new_field_record['id']])
                 db_handle.conn.commit()
                 new_field_record['type'] = new_type_record['id']
                 db_handle['fields'].insert(new_field_record)
 
     else:
-        logging.warning(f'The symbol "{enum_override["parent"]}" does not exist in the database.'
-                        f'Field override will not be processed.')
+        logging.warning(
+            f'The symbol "{enum_override["parent"]}" does not exist in the database.'
+            f'Field override will not be processed.')
         # TODO: Not sure if this is the right approach
         # raise Exception(f'The symbol "{enum_override["parent"]}" does not exist in the database.\n'
         #                 f'Field override will not be processed.')
 
 
-
-def process_symbol_override(symbol_override: dict, symbol_elf: str, db_handle: sqlite_utils.Database):
-    type_record = get_field_type_record(symbol_override['parent'], symbol_override['member'], db_handle)
+def process_symbol_override(
+        symbol_override: dict,
+        symbol_elf: str,
+        db_handle: sqlite_utils.Database):
+    type_record = get_field_type_record(
+        symbol_override['parent'],
+        symbol_override['member'],
+        db_handle)
     if type_record:
         type_byte_size = type_record['byte_size']
         if symbol_exists(symbol_override['type'], db_handle) is False:
-            new_type = add_type_to_database(symbol_override['type'], symbol_elf, type_byte_size, db_handle)
+            new_type = add_type_to_database(
+                symbol_override['type'], symbol_elf, type_byte_size, db_handle)
             if new_type:
-                new_field_record = get_field_record(symbol_override['parent'], symbol_override['member'], db_handle)
+                new_field_record = get_field_record(
+                    symbol_override['parent'], symbol_override['member'], db_handle)
                 if new_field_record:
-                    db_handle['fields'].delete_where('id=?', [new_field_record['id']])
+                    db_handle['fields'].delete_where(
+                        'id=?', [new_field_record['id']])
                     db_handle.conn.commit()
                     new_field_record['type'] = new_type['id']
                     db_handle['fields'].insert(new_field_record)
         else:
-            new_field_record = get_field_record(symbol_override['parent'], symbol_override['member'], db_handle)
+            new_field_record = get_field_record(
+                symbol_override['parent'], symbol_override['member'], db_handle)
             if new_field_record:
-                db_handle['fields'].delete_where('id=?', [new_field_record['id']])
+                db_handle['fields'].delete_where(
+                    'id=?', [new_field_record['id']])
                 db_handle.conn.commit()
-                new_field_record['type'] = \
-                list(db_handle['symbols'].rows_where('name=?', [symbol_override['type']]))[0]['id']
+                new_field_record['type'] = list(
+                    db_handle['symbols'].rows_where(
+                        'name=?', [
+                            symbol_override['type']]))[0]['id']
                 db_handle['fields'].insert(new_field_record)
             else:
-                logging.warning(f'The field record with symbol "{symbol_override["parent"]}" with name'
-                                f' "{symbol_override["member"]}".')
+                logging.warning(
+                    f'The field record with symbol "{symbol_override["parent"]}" with name'
+                    f' "{symbol_override["member"]}".')
 
     else:
-        logging.warning(f'The symbol "{symbol_override["parent"]}" does not exist in the database.'
-                        f'Field override will not be processed.')
-        
-        
+        logging.warning(
+            f'The symbol "{symbol_override["parent"]}" does not exist in the database.'
+            f'Field override will not be processed.')
+
+
 def get_elf_file(registry: dict):
     elf_file = None
-    
+
     if 'modules' in registry:
         for module in registry['modules']:
             if 'elf_files' in registry['modules'][module]:
                 elf_file = registry['modules'][module]['elf_files'][0]
-                
-    return elf_file
-                
-                
 
-def process_def_overrides(def_overrides: dict, db_handle: sqlite_utils.Database, module_elf=None):
+    return elf_file
+
+
+def process_def_overrides(
+        def_overrides: dict,
+        db_handle: sqlite_utils.Database,
+        module_elf=None):
     """
     Apply overrides in def_overrides to database. Examples of these are strings that show up as char[] in sour code
     or enumerations that are represented
@@ -317,30 +390,35 @@ def process_def_overrides(def_overrides: dict, db_handle: sqlite_utils.Database,
     # FIXME:Not sure if imposing requirement makes a lot of sense...
     if module_elf is None:
         module_elf = get_elf_file(def_overrides)
-        
+
         if module_elf is None:
             logging.error(f"The elf file was not found in the registry.")
-            return             
-    
+            return
+
     if 'modules' in def_overrides:
         for module in def_overrides['modules']:
             if module_elf:
                 if 'msg_def_overrides' in def_overrides['modules'][module]:
                     for override in def_overrides['modules'][module]['msg_def_overrides']:
                         if override['type'] != 'enumeration':
-                            process_symbol_override(override, module_elf, db_handle)
+                            process_symbol_override(
+                                override, module_elf, db_handle)
                         else:
-                            process_enum_override(override, module_elf, db_handle)
+                            process_enum_override(
+                                override, module_elf, db_handle)
             else:
                 if 'msg_def_overrides' in def_overrides['modules'][module]:
                     for override in def_overrides['modules'][module]['msg_def_overrides']:
                         if override['type'] != 'enumeration':
-                            process_symbol_override(override, module_elf, db_handle)
+                            process_symbol_override(
+                                override, module_elf, db_handle)
                         else:
-                            process_enum_override(override, module_elf, db_handle)
+                            process_enum_override(
+                                override, module_elf, db_handle)
 
             if 'modules' in def_overrides['modules'][module]:
-                process_def_overrides(def_overrides['modules'][module], db_handle, module_elf)
+                process_def_overrides(
+                    def_overrides['modules'][module], db_handle, module_elf)
                 module_elf = None
 
 
@@ -355,9 +433,14 @@ def parse_cli() -> argparse.Namespace:
     Parses cli arguments.
     :return: The namespace that has all the arguments that have been parsed.
     """
-    parser = argparse.ArgumentParser(description='Override types in the database.')
+    parser = argparse.ArgumentParser(
+        description='Override types in the database.')
 
-    parser.add_argument('--database', type=str, required=True, help='The path to the SQLITE database..')
+    parser.add_argument(
+        '--database',
+        type=str,
+        required=True,
+        help='The path to the SQLITE database..')
 
     parser.add_argument('--yaml_path', type=str, required=True,
                         help='The yaml config file that has the overrides.')
