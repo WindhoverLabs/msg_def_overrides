@@ -92,13 +92,14 @@ def add_type_to_database(type_name: str, elf_name: str, byte_size: int,
     return new_type_record
 
 
-def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite_utils.Database) -> Union[dict, None]:
+def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite_utils.Database, encoding: Union[int, None]) -> Union[dict, None]:
     """
     Adds a new type to the symbols table with a random name.
     This function ensures that the new type does not exist in the database.
     :param elf_name:
     :param byte_size:
     :param db_handle:
+    :param:encoding: The foreign key, may be None.
     :return: Returns the new symbol record that was added to the database. If the elf record with name of elf_name
     does not exist, then None is returned.
     """
@@ -115,6 +116,7 @@ def add_random_type_to_database(elf_name: str, byte_size: int, db_handle: sqlite
 
     new_type_record['name'] = random_type_name
     new_type_record['byte_size'] = byte_size
+    new_type_record['encoding'] = encoding
 
     last_row_id = db_handle['symbols'].insert(new_type_record).last_rowid
 
@@ -234,7 +236,10 @@ def process_enum_override(enum_override: dict, symbol_elf: str, db_handle: sqlit
     type_record = get_field_type_record(enum_override['parent'], enum_override['member'], db_handle)
     if type_record:
         type_byte_size = type_record['byte_size']
-        new_type_record = add_random_type_to_database(symbol_elf, type_byte_size, db_handle)
+
+        target_symbol_id = __follow_symbol_to_target(db_handle, type_record['id'])
+        encoding = list(db_handle['symbols'].rows_where("id=?", [target_symbol_id]))[0]['encoding']
+        new_type_record = add_random_type_to_database(symbol_elf, type_byte_size, db_handle, encoding)
         if new_type_record:
             new_enum_record = add_enumeration_to_data_base(new_type_record['name'],
                                                            enum_override['enumerations'],
