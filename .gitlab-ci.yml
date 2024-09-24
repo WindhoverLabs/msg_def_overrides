@@ -1,0 +1,36 @@
+stages:
+  - build
+  - test
+
+before_script:
+  - docker info
+
+# Define the pipeline to run on push and merge request events
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop"'
+
+build:
+  stage: build
+  image: docker:20.10.7
+  services:
+    - docker:dind
+  script:
+    # Clone submodules
+    - git submodule update --init --recursive
+
+    # Set up Docker Buildx
+    - docker buildx create --use
+
+    # Build Docker image
+    - docker build -t msg_def_overrides:latest .
+
+run_tests:
+  stage: test
+  image: docker:20.10.7
+  services:
+    - docker:dind
+  script:
+    - touch .env
+    - make docker_build
