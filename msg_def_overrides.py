@@ -367,6 +367,9 @@ def get_elf_file(registry: dict):
     elf_file = None
 
     if 'modules' in registry:
+        if "elf_files" in registry["modules"]:
+            elf_file = registry["modules"]["elf_files"][0]
+            return elf_file
         for module in registry['modules']:
             if 'elf_files' in registry['modules'][module]:
                 elf_file = registry['modules'][module]['elf_files'][0]
