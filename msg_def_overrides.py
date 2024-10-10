@@ -262,8 +262,13 @@ def get_field_type_record(symbol_name: str,
             'name=?', [symbol_name]))[0]['id']
     target_symbol = __follow_symbol_to_target(db_handle, field_symbol)
     field_record = list(db_handle['fields'].rows_where(
-        'symbol=? and name=?', (target_symbol, field_name)))[0]
+        'symbol=? and name=?', (target_symbol, field_name)))
 
+    if len(field_record) == 0:
+        logging.error(
+            f'The field with name "{field_name}" and symbol "{symbol_name}" does not exist.')
+        return symbol_record
+    field_record = field_record[0]
     symbol_record = list(
         db_handle['symbols'].rows_where(
             'id=?', [
