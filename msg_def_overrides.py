@@ -387,7 +387,7 @@ def process_def_overrides(
         db_handle: sqlite_utils.Database,
         module_elf=None):
     """
-    Apply overrides in def_overrides to database. Examples of these are strings that show up as char[] in sour code
+    Apply overrides in def_overrides to database. Examples of these are strings that show up as char[] in source code
     or enumerations that are represented
     :param module_elf:
     :param def_overrides:
